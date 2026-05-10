@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pop Timer 5:1</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Fredoka+One&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --yellow: #ffee00;
+            --pink: #ff00ff;
+            --blue: #00d4ff;
+            --black: #2d3436;
+            --white: #ffffff;
+        }
+
+        body {
+            background-color: var(--pink);
+            font-family: 'Fredoka One', cursive;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .main-card {
+            background: var(--yellow);
+            border: 6px solid var(--black);
+            box-shadow: 12px 12px 0px var(--black);
+            border-radius: 30px;
+            padding: 40px;
+            width: 85%;
+            max-width: 450px;
+            text-align: center;
+        }
+
+        #statusText {
+            font-size: 1.8rem;
+            color: var(--black);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .display {
+            font-family: 'Bungee', cursive;
+            font-size: 4rem;
+            color: var(--black);
+            background: var(--white);
+            border: 5px solid var(--black);
+            border-radius: 20px;
+            margin: 20px 0;
+            padding: 15px;
+            box-shadow: inset 4px 4px 0px rgba(0,0,0,0.1);
+        }
+
+        button {
+            font-family: 'Bungee', cursive;
+            font-size: 1.5rem;
+            padding: 20px 40px;
+            border: 4px solid var(--black);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.1s;
+            width: 100%;
+        }
+
+        .btn-action {
+            background: var(--blue);
+            color: var(--white);
+            box-shadow: 6px 6px 0px var(--black);
+        }
+
+        button:active {
+            transform: translate(4px, 4px);
+            box-shadow: 2px 2px 0px var(--black);
+        }
+
+        /* Colore per lo stato di pausa */
+        .break-mode {
+            background-color: #2ecc71 !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-card">
+        <div id="statusText">PRONTO?</div>
+        <div id="timerDisplay" class="display">00:00</div>
+        <button id="mainBtn" class="btn-action" onclick="handleTimer()">STUDIA!</button>
+    </div>
+
+<script>
+    let seconds = 0;
+    let timerInterval = null;
+    let mode = 'READY'; // Stati: READY, STUDYING, BREAK
+
+    const display = document.getElementById('timerDisplay');
+    const statusText = document.getElementById('statusText');
+    const btn = document.getElementById('mainBtn');
+
+    function updateDisplay(s) {
+        const mins = Math.floor(s / 60).toString().padStart(2, '0');
+        const secs = (s % 60).toString().padStart(2, '0');
+        display.innerText = `${mins}:${secs}`;
+    }
+
+    function handleTimer() {
+        if (mode === 'READY' || mode === 'BREAK_FINISHED') {
+            startStudying();
+        } else if (mode === 'STUDYING') {
+            stopStudyingAndStartBreak();
+        }
+    }
+
+    function startStudying() {
+        mode = 'STUDYING';
+        seconds = 0;
+        statusText.innerText = "🔥 FOCUS! 🔥";
+        btn.innerText = "STOP!";
+        btn.style.background = "#ff3e3e"; // Rosso durante lo studio
+        
+        timerInterval = setInterval(() => {
+            seconds++;
+            updateDisplay(seconds);
+        }, 1000);
+    }
+
+    function stopStudyingAndStartBreak() {
+        clearInterval(timerInterval);
+        mode = 'BREAK';
+        
+        // Calcolo rapporto 5:1
+        let breakSeconds = Math.floor(seconds / 5);
+        
+        statusText.innerText = "🍦 RELAX... 🍦";
+        btn.style.display = 'none'; // Nasconde il tasto durante la pausa
+        
+        updateDisplay(breakSeconds);
+
+        timerInterval = setInterval(() => {
+            breakSeconds--;
+            if (breakSeconds <= 0) {
+                clearInterval(timerInterval);
+                finishBreak();
+            }
+            updateDisplay(breakSeconds);
+        }, 1000);
+    }
+
+    function finishBreak() {
+        mode = 'BREAK_FINISHED';
+        statusText.innerText = "DAI! ANCORA?";
+        btn.innerText = "RIPARTI!";
+        btn.style.background = "var(--blue)";
+        btn.style.display = 'block';
+        updateDisplay(0);
+    }
+</script>
+</body>
+</html>
