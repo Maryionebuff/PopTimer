@@ -4,14 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Pop Timer 5:1</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icona.png">
+    <link rel="icon" type="image/png" href="icona.png">
+
     <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Fredoka+One&display=swap" rel="stylesheet">
+    
     <style>
         :root {
             --yellow: #ffee00;
             --pink: #ff00ff;
             --blue: #00d4ff;
+            --green: #2ecc71;
             --black: #2d3436;
             --white: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -23,82 +36,96 @@
             height: 100vh;
             margin: 0;
             overflow: hidden;
+            padding: 20px;
         }
 
         .main-card {
             background: var(--yellow);
             border: 6px solid var(--black);
             box-shadow: 12px 12px 0px var(--black);
-            border-radius: 30px;
-            padding: 40px;
-            width: 85%;
+            border-radius: 35px;
+            padding: 40px 30px;
+            width: 100%;
             max-width: 450px;
             text-align: center;
+            transition: all 0.3s ease;
         }
 
         #statusText {
-            font-size: 1.8rem;
+            font-size: 2rem;
             color: var(--black);
             margin-bottom: 10px;
             text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 0px var(--white);
         }
 
         .display {
             font-family: 'Bungee', cursive;
-            font-size: 4rem;
+            font-size: 4.5rem;
             color: var(--black);
             background: var(--white);
-            border: 5px solid var(--black);
-            border-radius: 20px;
-            margin: 20px 0;
-            padding: 15px;
-            box-shadow: inset 4px 4px 0px rgba(0,0,0,0.1);
+            border: 6px solid var(--black);
+            border-radius: 25px;
+            margin: 25px 0;
+            padding: 20px 10px;
+            box-shadow: inset 6px 6px 0px rgba(0,0,0,0.1);
         }
 
         button {
             font-family: 'Bungee', cursive;
-            font-size: 1.5rem;
-            padding: 20px 40px;
-            border: 4px solid var(--black);
-            border-radius: 20px;
+            font-size: 1.6rem;
+            padding: 20px;
+            border: 5px solid var(--black);
+            border-radius: 25px;
             cursor: pointer;
             transition: transform 0.1s, box-shadow 0.1s;
             width: 100%;
+            text-transform: uppercase;
         }
 
-        .btn-action {
+        .btn-study {
             background: var(--blue);
             color: var(--white);
-            box-shadow: 6px 6px 0px var(--black);
+            box-shadow: 8px 8px 0px var(--black);
+        }
+
+        .btn-stop {
+            background: #ff3e3e;
+            color: var(--white);
+            box-shadow: 8px 8px 0px var(--black);
         }
 
         button:active {
-            transform: translate(4px, 4px);
+            transform: translate(6px, 6px);
             box-shadow: 2px 2px 0px var(--black);
         }
 
-        /* Colore per lo stato di pausa */
-        .break-mode {
-            background-color: #2ecc71 !important;
+        /* Ottimizzazione per iPad */
+        @media (min-width: 768px) {
+            .main-card { max-width: 600px; padding: 60px; }
+            .display { font-size: 6rem; }
+            #statusText { font-size: 3rem; }
         }
     </style>
 </head>
 <body>
 
-    <div class="main-card">
-        <div id="statusText">PRONTO?</div>
+    <div class="main-card" id="card">
+        <div id="statusText">DAJE!</div>
         <div id="timerDisplay" class="display">00:00</div>
-        <button id="mainBtn" class="btn-action" onclick="handleTimer()">STUDIA!</button>
+        <button id="mainBtn" class="btn-study" onclick="handleTimer()">STUDIA!</button>
     </div>
 
 <script>
     let seconds = 0;
     let timerInterval = null;
-    let mode = 'READY'; // Stati: READY, STUDYING, BREAK
+    let mode = 'READY'; 
 
     const display = document.getElementById('timerDisplay');
     const statusText = document.getElementById('statusText');
     const btn = document.getElementById('mainBtn');
+    const card = document.getElementById('card');
 
     function updateDisplay(s) {
         const mins = Math.floor(s / 60).toString().padStart(2, '0');
@@ -119,7 +146,8 @@
         seconds = 0;
         statusText.innerText = "🔥 FOCUS! 🔥";
         btn.innerText = "STOP!";
-        btn.style.background = "#ff3e3e"; // Rosso durante lo studio
+        btn.className = "btn-stop";
+        card.style.backgroundColor = var(--yellow);
         
         timerInterval = setInterval(() => {
             seconds++;
@@ -131,31 +159,39 @@
         clearInterval(timerInterval);
         mode = 'BREAK';
         
-        // Calcolo rapporto 5:1
+        // Calcolo rapporto 5:1 (Esempio: 50 min studio = 10 min pausa)
         let breakSeconds = Math.floor(seconds / 5);
         
+        // Se lo studio è stato troppo breve (< 5 sec), diamo almeno 1 min di pausa per test
+        if(breakSeconds < 1) breakSeconds = 1; 
+
         statusText.innerText = "🍦 RELAX... 🍦";
-        btn.style.display = 'none'; // Nasconde il tasto durante la pausa
+        btn.style.display = 'none'; 
+        card.style.backgroundColor = "#2ecc71"; // Verde durante la pausa
         
         updateDisplay(breakSeconds);
 
         timerInterval = setInterval(() => {
             breakSeconds--;
+            updateDisplay(breakSeconds);
             if (breakSeconds <= 0) {
                 clearInterval(timerInterval);
                 finishBreak();
             }
-            updateDisplay(breakSeconds);
         }, 1000);
     }
 
     function finishBreak() {
         mode = 'BREAK_FINISHED';
-        statusText.innerText = "DAI! ANCORA?";
+        statusText.innerText = "ANCORA?";
         btn.innerText = "RIPARTI!";
-        btn.style.background = "var(--blue)";
+        btn.className = "btn-study";
         btn.style.display = 'block';
+        card.style.backgroundColor = var(--yellow);
         updateDisplay(0);
+        
+        // Vibrazione opzionale se supportata
+        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
     }
 </script>
 </body>
